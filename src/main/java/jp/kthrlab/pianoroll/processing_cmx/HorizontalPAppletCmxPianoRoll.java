@@ -26,104 +26,56 @@ public class HorizontalPAppletCmxPianoRoll extends HorizontalPAppletPianoRoll {
             PianoRollDataModelMultiChannel dataModelMultiChannel = (PianoRollDataModelMultiChannel) dataModel;
 
             long tickPosition = cmx.getTickPosition();
-            Object tickLock = Long.valueOf(tickPosition);
+            Object tickLock = tickPosition;
             synchronized (tickLock) {
                 dataModelMultiChannel.getChannels().forEach(channel -> {
                     strokeWeight(1.0f);
                     stroke(channel.color.getRed(), channel.color.getGreen(), channel.color.getBlue(), channel.color.getAlpha());
                     SCCDataSet.Part part = dataModelMultiChannel.getPart(channel.channel_number);
+
                     if (part != null && part.getNoteOnlyList() != null) {
-//                    int pMeasure = 0;
                         for (MutableNote note : part.getNoteOnlyList()) {
 
-//                        }
-//                        Arrays.stream(part.getNoteOnlyList()).forEach(note -> {
-                            // Break if it is outside the drawing range
                             Long relativeOnset = note.onset() - tickPosition;
                             float h = (float) ((note.offset() - note.onset()) * dataModelMultiChannel.getPixelPerTick());
                             float y = timeline.getSpan() - (float) (relativeOnset * dataModelMultiChannel.getPixelPerTick()) - h;
+                            // Break if it is outside the drawing range
                             if (y < 0) {
                                 break;
                             }
+                            float x = horizontalKeyboard.semitoneXMap.get(note.notenum());
+                            float w = timeline.getSemitoneWidth();
 
+//                            println(String.format("tickPosition=%s, note.onset()=%s, relativeOnset=%s, x=%s, y=%s, w=%s, h=%s",tickPosition, note.onset(), relativeOnset, x, y, w, h));
 
-//                        if (note.onset() >= (long) (dataModelMultiChannel.getRelativeFirstMeasure() * dataModelMultiChannel.getBeatNum() * dataModelMultiChannel.getScc().getDivision()) &&
-//                                note.onset() < (long) (dataModelMultiChannel.getRelativeFirstMeasure() * dataModelMultiChannel.getBeatNum() * dataModelMultiChannel.getScc().getDivision())) {
                             int measure = (int) (note.onset() / dataModelMultiChannel.getScc().getDivision() / dataModelMultiChannel.getBeatNum());
-
-
-
                             double beat = note.onset() / (double) dataModelMultiChannel.getScc().getDivision() - (measure * dataModelMultiChannel.getBeatNum());
                             double duration = (note.offset() - note.onset()) / (double) dataModelMultiChannel.getScc().getDivision();
+
+//                            println(String.format("measure=%s", measur));
                             //                            println("measure=$measure, beat=$beat, duration = ${note.offset()}-${note.onset()} / ${scc.division} = $duration")
 //                            drawNote(measure - dataModelMultiChannel.getRelativeFirstMeasure(), beat, duration, note.notenum(), false, dataModelMultiChannel);
 
-                            // test draw
 //                            Long relativeOffset = note.offset()-tickPosition;
                             fill(channel.color.getRGB());
                             stroke(Color.LIGHT_GRAY.getRGB());
-//                            float h = (float) ((note.offset() - note.onset()) * dataModelMultiChannel.getPixelPerTick());
-//                            this.rect(
-//                                    horizontalKeyboard.semitoneXMap.get(note.notenum()),
-//                                    timeline.getSpan() - (float) (note.onset() * dataModelMultiChannel.getPixelPerTick()) - h,
-//                                    timeline.getSemitoneWidth(),
-//                                    h
-//                            );
-                            this.rect(
-                                    horizontalKeyboard.semitoneXMap.get(note.notenum()),
-                                    y,
-                                    timeline.getSemitoneWidth(),
-                                    h
-                            );
+                            this.rect(x, y, w, h);
                         }
-//                        });
                     }
-//                    blendMode(MULTIPLY);
+                    blendMode(MULTIPLY);
                 });
 
             }
 
 
         }
-//        blendMode(1);
-
-//            PianoRollDataModelMultiChannel channelsDataModel = (PianoRollDataModelMultiChannel) dataModel;
-//            for (Channel channel : channelsDataModel.getChannels()) {
-//                PianoRollDataModelMultiChannel.Color color = channel.getColor();
-//                strokeWeight(1.5f);
-//                stroke(color.getR(), color.getG(), color.getB(), color.getA());
-//        }
+        blendMode(1);
     }
 
     private void drawMeasureLine(){
 
     }
 
-
-    //    private void drawNote(int measure, double beat, double duration, int notenum, boolean selected, PianoRollDataModelMultiChannel dataModelMultiChannel) {
-//        double lenMeas = (this.height - horizontalKeyboard.getWhiteKeyHeight()) / (double) dataModelMultiChannel.getMeasureNum();
-//        double x = horizontalKeyboard.keyXMap.get(notenum); //beat2x(measure, beat);
-//        double w = duration * lenMeas / dataModelMultiChannel.getBeatNum();
-//        double y = timeline.getSpan() - beat * timeline.getPixelPerTick(); //notenum2y(notenum);
-////            fill(color(noteR, noteG, noteB));
-////        this.rect(100f, 100f, 100f, 100f);
-//        this.rect((float) x, (float) y, (float) w, (float) (timeline.getSemitoneWidth()));// keyboard.getOctaveWidth() / Keyboard.NumOfKeysPerOctave.SEMITONES.getValue()));
-//    }
-
-//    protected double beat2x(int measure, double beat) {
-//        if (this.dataModel != null) {
-//            double lenMeas = (this.musicWidth - this.keyboardWidth) / this.dataModel.getMeasureNum();
-//            return this.keyboardWidth + measure * lenMeas + beat * lenMeas / this.dataModel.getBeatNum();
-//        }
-//        return 0.0;
-//    }
-//
-//    protected Float beat2y() {
-//        if (this.dataModel != null) {
-//
-//        }
-//        return 0.0f;
-//    }
     public static void main(String[] args) {
         PApplet.main(new String[] { HorizontalPAppletCmxPianoRoll.class.getName() });
     }
