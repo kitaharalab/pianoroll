@@ -1,5 +1,7 @@
 package jp.kthrlab.pianoroll.processing_cmx;
 
+import jp.crestmuse.cmx.elements.MutableNote;
+import jp.crestmuse.cmx.filewrappers.SCC;
 import jp.crestmuse.cmx.filewrappers.SCCDataSet;
 import jp.crestmuse.cmx.misc.PianoRoll;
 import jp.crestmuse.cmx.processing.CMXController;
@@ -22,13 +24,29 @@ public class HorizontalPAppletCmxPianoRoll extends HorizontalPAppletPianoRoll {
         if (isNoteVisible && (dataModel != null)) {
             super.drawNote();
             PianoRollDataModelMultiChannel dataModelMultiChannel = (PianoRollDataModelMultiChannel) dataModel;
-            dataModelMultiChannel.getChannels().forEach(channel -> {
-                strokeWeight(1.0f);
-                stroke(channel.color.getRed(), channel.color.getGreen(), channel.color.getBlue(), channel.color.getAlpha());
-                SCCDataSet.Part part = dataModelMultiChannel.getPart(channel.channel_number);
-                if (part != null && part.getNoteOnlyList() != null) {
-                    int pMeasure = 0;
-                    Arrays.stream(part.getNoteOnlyList()).forEach(note -> {
+
+            long tickPosition = cmx.getTickPosition();
+            Object tickLock = Long.valueOf(tickPosition);
+            synchronized (tickLock) {
+                dataModelMultiChannel.getChannels().forEach(channel -> {
+                    strokeWeight(1.0f);
+                    stroke(channel.color.getRed(), channel.color.getGreen(), channel.color.getBlue(), channel.color.getAlpha());
+                    SCCDataSet.Part part = dataModelMultiChannel.getPart(channel.channel_number);
+                    if (part != null && part.getNoteOnlyList() != null) {
+//                    int pMeasure = 0;
+                        for (MutableNote note : part.getNoteOnlyList()) {
+
+//                        }
+//                        Arrays.stream(part.getNoteOnlyList()).forEach(note -> {
+                            // Break if it is outside the drawing range
+                            Long relativeOnset = note.onset() - tickPosition;
+                            float h = (float) ((note.offset() - note.onset()) * dataModelMultiChannel.getPixelPerTick());
+                            float y = timeline.getSpan() - (float) (relativeOnset * dataModelMultiChannel.getPixelPerTick()) - h;
+                            if (y < 0) {
+                                break;
+                            }
+
+
 //                        if (note.onset() >= (long) (dataModelMultiChannel.getRelativeFirstMeasure() * dataModelMultiChannel.getBeatNum() * dataModelMultiChannel.getScc().getDivision()) &&
 //                                note.onset() < (long) (dataModelMultiChannel.getRelativeFirstMeasure() * dataModelMultiChannel.getBeatNum() * dataModelMultiChannel.getScc().getDivision())) {
                             int measure = (int) (note.onset() / dataModelMultiChannel.getScc().getDivision() / dataModelMultiChannel.getBeatNum());
@@ -41,23 +59,33 @@ public class HorizontalPAppletCmxPianoRoll extends HorizontalPAppletPianoRoll {
 //                            drawNote(measure - dataModelMultiChannel.getRelativeFirstMeasure(), beat, duration, note.notenum(), false, dataModelMultiChannel);
 
                             // test draw
+//                            Long relativeOffset = note.offset()-tickPosition;
                             fill(channel.color.getRGB());
                             stroke(Color.LIGHT_GRAY.getRGB());
-//                            float h = (float) ((note.offset() - note.onset()) * dataModelMultiChannel.getPixelPerTick()); //timeline.getPixelPerTick());
-                            float h = (float) ((note.offset() - note.onset()) * dataModelMultiChannel.getPixelPerTick()); //timeline.getPixelPerTick());
+//                            float h = (float) ((note.offset() - note.onset()) * dataModelMultiChannel.getPixelPerTick());
+//                            this.rect(
+//                                    horizontalKeyboard.semitoneXMap.get(note.notenum()),
+//                                    timeline.getSpan() - (float) (note.onset() * dataModelMultiChannel.getPixelPerTick()) - h,
+//                                    timeline.getSemitoneWidth(),
+//                                    h
+//                            );
                             this.rect(
                                     horizontalKeyboard.semitoneXMap.get(note.notenum()),
-                                    timeline.getSpan() - (float) (note.onset() * dataModelMultiChannel.getPixelPerTick()) - h,
+                                    y,
                                     timeline.getSemitoneWidth(),
                                     h
                             );
-//                        }
-                    });
-                }
-                blendMode(MULTIPLY);
-            });
+                        }
+//                        });
+                    }
+//                    blendMode(MULTIPLY);
+                });
+
+            }
+
+
         }
-        blendMode(1);
+//        blendMode(1);
 
 //            PianoRollDataModelMultiChannel channelsDataModel = (PianoRollDataModelMultiChannel) dataModel;
 //            for (Channel channel : channelsDataModel.getChannels()) {

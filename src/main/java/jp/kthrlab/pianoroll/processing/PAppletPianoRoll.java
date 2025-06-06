@@ -41,6 +41,7 @@ public class PAppletPianoRoll extends PApplet implements PianoRoll {
     // Draw method
     @Override
     public void draw() {
+        background(255);
         // Drawing logic here
         drawKeyboard();
         drawTimeline();
@@ -59,7 +60,6 @@ public class PAppletPianoRoll extends PApplet implements PianoRoll {
 
     @Override
     public void drawNote() {
-        // Note drawing logic here
     }
 
     @Override
